@@ -1,0 +1,74 @@
+# NEURON Configuration
+# Brainwave → Claude Code Pipeline
+#
+# NOTE: This config controls the thin data pipe only.
+# All signal interpretation, state classification, and creative
+# decision-making happens in Claude via the system prompt.
+# API keys go in .env (see .env.example)
+
+# ─── Connection Settings ────────────────────────────────────────
+connection:
+  # "osc" = Mind Monitor app (easiest setup)
+  # "lsl" = Petal Metrics / muselsl (higher fidelity)
+  source: osc
+
+  osc:
+    host: "0.0.0.0"
+    port: 5000
+
+  lsl:
+    stream_name: "Muse"
+    stream_type: "EEG"
+
+# ─── Data Collection (thin layer) ──────────────────────────────
+signal:
+  window_size: 2.0      # seconds of data per snapshot
+
+collector:
+  snapshot_rate: 2.0     # snapshots per second (for display refresh)
+  history_length: 10     # number of band power readings to include in trend
+
+# ─── Claude Settings ──────────────────────────────────────────
+claude:
+  # "api" = Anthropic SDK (pay-per-token, streaming, requires ANTHROPIC_API_KEY)
+  # "agent-sdk" = Claude Agent SDK (uses Claude Code auth session, no separate API key)
+  backend: "agent-sdk"
+
+  # Model (used by both backends)
+  model: "claude-sonnet-4-20250514"
+
+  # Generation timing
+  min_interval: 30.0
+  min_signal_quality: 0.3
+
+# ─── Nano Banana 2 (AI Image Generation) ─────────────────────
+image_gen:
+  model: "gemini-3.1-flash-image-preview"
+  default_aspect_ratio: "16:9"
+  # GEMINI_API_KEY set in .env
+
+# ─── ElevenLabs Music (AI Music Generation) ──────────────────
+elevenlabs:
+  model_id: "music_v1"
+  default_duration_ms: 30000     # 30 second tracks
+  force_instrumental: true       # no vocals
+  output_format: "mp3_44100_128"
+  # ELEVENLABS_API_KEY set in .env
+
+# ─── Output ─────────────────────────────────────────────────────
+output:
+  base_dir: "./outputs"
+  session_dir: "./sessions"
+
+# ─── Web Server ─────────────────────────────────────────────────
+web:
+  host: "0.0.0.0"
+  port: 8000
+
+# ─── Brain Learning Experiments ─────────────────────────────────
+learning:
+  trial_duration: 60
+  reset_duration: 30
+  snapshot_interval: 2.0
+  min_signal_quality: 0.5
+  confidence_threshold: 0.7
